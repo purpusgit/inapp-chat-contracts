@@ -1,0 +1,15 @@
+{
+  "name": "@purpus/inapp-chat-contracts",
+  "version": "1.0.0",
+  "description": "Shared TypeScript contracts for the Belongity in-app chat service",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
