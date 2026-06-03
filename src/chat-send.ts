@@ -6,11 +6,22 @@
  * Do NOT re-declare these types in either consumer repo.
  *
  * v1.0.0 — 2026-05-19
+ * v5.0.0 — 2026-06-04 — Y1: FallbackReason added; Y2: fallback_needed removed;
+ *                        Y3: BELONGITY_CHAT_SEND_TASK_ID constant exported
  */
 
 /**
+ * v5 Y3: Task ID exported as a constant so both repos import it instead of
+ * hardcoding the string. Drift between repos becomes impossible.
+ */
+export const BELONGITY_CHAT_SEND_TASK_ID = 'belongity-chat-send' as const;
+
+/**
  * Reasons the in-app channel is unavailable.
- * These map to specific fallback routing decisions in pngine.
+ * These are CHAT-SERVICE-EMITTED reasons only.
+ * The task NEVER returns 'task_crashed' — that label is injected by pngine
+ * when run.ok === false (Trigger.dev unexpected failure).
+ * See FallbackReason for the broader union used by pngine.
  *
  * user_not_active   — Redis presence TTL expired (PRESENCE_TTL_SECONDS = 300s)
  * no_fcm_token      — No FCM device token on record for this user
@@ -20,6 +31,13 @@ export type ChatSendFailureReason =
   | 'user_not_active'
   | 'no_fcm_token'
   | 'fcm_send_failed';
+
+/**
+ * v5 Y1: Broader failure union used by pngine's fallback router.
+ * Includes 'task_crashed' — injected by pngine when Trigger.dev run.ok === false.
+ * Chat service code NEVER produces 'task_crashed'; pngine injects it.
+ */
+export type FallbackReason = ChatSendFailureReason | 'task_crashed';
 
 /**
  * Payload passed to the belongity-chat-send Trigger.dev task.
@@ -50,14 +68,14 @@ export interface ChatSendPayload {
  * Unhandled exceptions (infrastructure failures) still bubble up as
  * Trigger.dev task failures (run.ok === false on the caller side).
  *
- * When success === false && fallback_needed === true, pngine cascades
- * to WhatsApp → SMS → email via its fallbackRouter.
+ * v5 Y2: fallback_needed removed — success: false already implies "needs fallback."
+ * The discriminant alone is sufficient; a redundant boolean creates two truth-points.
+ * If "drop without fallback" semantics is needed later, add a third union arm then.
  */
 export type ChatSendResult =
   | { success: true }
   | {
       success: false;
-      fallback_needed: true;
       reason: ChatSendFailureReason;
       /** Internal DB integer — needed by pngine for WhatsApp number lookup. */
       userId: number;
