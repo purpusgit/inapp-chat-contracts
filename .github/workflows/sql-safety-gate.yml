@@ -1,0 +1,10 @@
+name: SQL Safety Gate
+on:
+  pull_request:
+    branches: [sandbox]
+    paths:
+      - 'src/**/*.sql.ts'
+      - 'src/**/*.ts'
+jobs:
+  sql-gate:
+    uses: purpusgit/.github/.github/workflows/reusable-sql-safety-gate.yml@main
