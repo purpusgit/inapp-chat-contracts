@@ -1,7 +1,22 @@
+# No trigger filter here, deliberately — no `paths:`, `paths-ignore:`, `branches:` or
+# `branches-ignore:` on `pull_request`. Do not add one back.
+#
+# This file reports `sql-gate / SQL stray-semicolon check`, which is a REQUIRED status check on
+# `sandbox`. A filtered required check does not report "skipped" when the filter
+# misses — it does not report AT ALL, and branch protection blocks on the ABSENCE.
+# Re-running, reopening and empty commits all do nothing, because there is nothing to
+# re-run.
+#
+# The `branches:` axis is the one this file carried, and it is not harmless: a PR whose
+# base is not in the list gets ZERO check runs, and a STACKED PR's base is another
+# feature branch, never the integration branch. Same permanent block as `paths:`,
+# invisible in the PR UI because it is an absence rather than a red.
+#
+# To cut cost, do it INSIDE the job — cache, an early-exit step, a `concurrency:` group
+# — so the check still reports a conclusion. A gate that can go silent is not a gate.
 name: SQL Safety Gate
 on:
   pull_request:
-    branches: [sandbox]
 jobs:
   sql-gate:
     uses: purpusgit/.github/.github/workflows/reusable-sql-safety-gate.yml@main
